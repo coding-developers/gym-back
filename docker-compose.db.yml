@@ -1,0 +1,15 @@
+services:
+  academia_db:
+    image: postgres:15
+    container_name: academia_db
+    environment:
+      POSTGRES_DB: academia
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    ports:
+      - "5438:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
