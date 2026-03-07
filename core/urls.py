@@ -10,13 +10,10 @@ schema_view = get_schema_view(
     openapi.Info(
         title="Academia CRUD API",
         default_version="v1",
-<<<<<<< HEAD
         description="Documentação da API das academias — Arquitetura DDD (Companies, Students, Modalities, Financial, Administrative, Products)",
         terms_of_service="https://www.google.com/policies/terms/",
         contact=openapi.Contact(email="suporte@academia.com"),
         license=openapi.License(name="BSD License"),
-=======
->>>>>>> origin/dev
     ),
     public=True,
     permission_classes=[permissions.AllowAny],
@@ -25,11 +22,8 @@ schema_view = get_schema_view(
 
 
 urlpatterns = [
-<<<<<<< HEAD
     path("admin/", admin.site.urls),
     # Legacy routes (gym app)
-=======
->>>>>>> origin/dev
     path("api/", include("gym.urls")),
     # DDD Bounded Context routes
     path("api/", include("company.urls")),
