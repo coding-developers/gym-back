@@ -12,3 +12,5 @@ PyYAML==6.0.3
 six==1.17.0
 sqlparse==0.5.3
 uritemplate==4.2.0
+gunicorn==21.2.0
+

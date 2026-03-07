@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Python
 __pycache__/
 *.py[cod]
@@ -30,3 +31,7 @@ staticfiles/
 *.swp
 *.swo
 .DS_Store
+=======
+.env
+.env.local
+>>>>>>> origin/dev
