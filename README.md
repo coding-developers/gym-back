@@ -16,10 +16,15 @@ This project provides a RESTful API to manage gyms (companies), their members (s
 | Database | PostgreSQL (`psycopg2-binary`) |
 | API Docs | drf-yasg (Swagger / ReDoc) |
 | Config | python-decouple |
+| Server | Gunicorn |
+| Reverse Proxy | Nginx |
+| Containerization | Docker / Docker Compose |
 
 ---
 
-## DDD Context Map (Matriz DDD)
+## Architecture
+
+### DDD Context Map
 
 The application is structured around **6 bounded contexts**, each representing a distinct domain with clear responsibilities and boundaries.
 
@@ -70,6 +75,33 @@ The application is structured around **6 bounded contexts**, each representing a
 | Administrativo | Alunos | Conformist | Staff are modeled as Students with elevated roles |
 
 > **ACL** = Anti-Corruption Layer — each context references others by ID only (no direct FK), preventing tight coupling.
+
+### Infrastructure Layers
+
+Each bounded context follows the same 4-layer DDD architecture:
+
+```
+┌─────────────────────────────────────────┐
+│          Interface Layer                │
+│  views.py · serializers.py · urls.py   │
+├─────────────────────────────────────────┤
+│         Application Layer               │
+│       application/use_cases.py          │
+├─────────────────────────────────────────┤
+│           Domain Layer                  │
+│  domain/entities.py · domain/services.py│
+├─────────────────────────────────────────┤
+│        Infrastructure Layer             │
+│    infrastructure/repositories.py       │
+│          models.py (ORM)               │
+└─────────────────────────────────────────┘
+```
+
+### Deployment Architecture
+
+```
+Internet → Nginx (port 80) → Gunicorn (port 8000) → Django App → PostgreSQL (port 5432)
+```
 
 ---
 
@@ -306,6 +338,10 @@ gym-back/
 ├── gym/                         # Legacy monolithic app (kept for reference)
 │   └── ...
 │
+├── nginx/
+│   └── nginx.conf               # Reverse proxy configuration
+├── Dockerfile
+├── docker-compose.yml
 ├── manage.py
 └── requirements.txt
 ```
@@ -314,12 +350,15 @@ gym-back/
 
 ## API Endpoints
 
-All endpoints are prefixed with `/api/`.
+All endpoints are prefixed with `/api/`. Each resource supports standard CRUD operations via Django REST Framework `ModelViewSet`.
 
-| Domain | Resource | Endpoint | Methods |
+### Endpoint Summary
+
+| Domain | Resource | Base URL | Supported Methods |
 |---|---|---|---|
 | Academia/Empresa | Companies | `/api/companies/` | GET, POST, PUT, PATCH, DELETE |
 | Alunos | Students | `/api/students/` | GET, POST, PUT, PATCH, DELETE |
+| Alunos | Enrollments | `/api/enrollments/` | GET, POST, PUT, PATCH, DELETE |
 | Modalidades | Modalities | `/api/modalities/` | GET, POST, PUT, PATCH, DELETE |
 | Financeiro | Payments | `/api/payments/` | GET, POST, PUT, PATCH, DELETE |
 | Financeiro | Subscriptions | `/api/subscriptions/` | GET, POST, PUT, PATCH, DELETE |
@@ -327,6 +366,780 @@ All endpoints are prefixed with `/api/`.
 | Administrativo | Roles | `/api/roles/` | GET, POST, PUT, PATCH, DELETE |
 | Produtos | Products | `/api/products/` | GET, POST, PUT, PATCH, DELETE |
 | Produtos | Categories | `/api/categories/` | GET, POST, PUT, PATCH, DELETE |
+
+### URL Patterns
+
+Each resource follows these URL patterns:
+
+| Method | URL | Description |
+|---|---|---|
+| `GET` | `/api/<resource>/` | List all records |
+| `POST` | `/api/<resource>/` | Create a new record |
+| `GET` | `/api/<resource>/{id}/` | Retrieve a record by ID |
+| `PUT` | `/api/<resource>/{id}/` | Full update of a record |
+| `PATCH` | `/api/<resource>/{id}/` | Partial update of a record |
+| `DELETE` | `/api/<resource>/{id}/` | Delete a record |
+
+---
+
+## Detailed Endpoint Reference
+
+### Companies — `/api/companies/`
+
+#### `GET /api/companies/`
+
+Returns a list of all active companies.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Academia FitLife",
+    "type_document": "CNPJ",
+    "document": "12.345.678/0001-99",
+    "status": "active",
+    "email": "contato@fitlife.com",
+    "foundation_date": "2020-01-15T00:00:00Z",
+    "logo": "https://cdn.example.com/logos/fitlife.png",
+    "phone_number": "11999990000",
+    "avatar_url": null,
+    "day_of_payment": 10,
+    "next_date_payment": "2026-04-10T00:00:00Z",
+    "last_date_payment": "2026-03-10T00:00:00Z",
+    "status_payment": "paid",
+    "created_at": "2026-01-01T10:00:00Z",
+    "updated_at": "2026-03-01T10:00:00Z",
+    "deleted_at": null
+  }
+]
+```
+
+#### `POST /api/companies/`
+
+Creates a new company. `next_date_payment` and `last_date_payment` are auto-calculated from `day_of_payment`.
+
+**Request Body:**
+```json
+{
+  "name": "Academia FitLife",
+  "type_document": "CNPJ",
+  "document": "12.345.678/0001-99",
+  "status": "active",
+  "email": "contato@fitlife.com",
+  "foundation_date": "2020-01-15T00:00:00Z",
+  "logo": "https://cdn.example.com/logos/fitlife.png",
+  "phone_number": "11999990000",
+  "avatar_url": null,
+  "day_of_payment": 10,
+  "status_payment": "paid"
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "name": "Academia FitLife",
+  "type_document": "CNPJ",
+  "document": "12.345.678/0001-99",
+  "status": "active",
+  "email": "contato@fitlife.com",
+  "foundation_date": "2020-01-15T00:00:00Z",
+  "logo": "https://cdn.example.com/logos/fitlife.png",
+  "phone_number": "11999990000",
+  "avatar_url": null,
+  "day_of_payment": 10,
+  "next_date_payment": "2026-04-10T00:00:00Z",
+  "last_date_payment": "2026-03-10T00:00:00Z",
+  "status_payment": "paid",
+  "created_at": "2026-03-07T10:00:00Z",
+  "updated_at": "2026-03-07T10:00:00Z",
+  "deleted_at": null
+}
+```
+
+#### `GET /api/companies/{id}/`
+
+Returns a single company by ID.
+
+**Response `200 OK`:** Same structure as the list item above.
+
+#### `PUT /api/companies/{id}/`
+
+Full update of a company. All required fields must be provided.
+
+**Request Body:** Same as `POST`.
+
+**Response `200 OK`:** Updated company object.
+
+#### `PATCH /api/companies/{id}/`
+
+Partial update of a company. Only include the fields to update.
+
+**Request Body (example):**
+```json
+{
+  "status": "inactive",
+  "status_payment": "overdue"
+}
+```
+
+**Response `200 OK`:** Updated company object.
+
+#### `DELETE /api/companies/{id}/`
+
+Deletes a company.
+
+**Response `204 No Content`**
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | string | ✅ | Company name |
+| `email` | string (email) | ✅ | Contact email |
+| `day_of_payment` | integer | ✅ | Day of month for billing (1–31) |
+| `status_payment` | string | ✅ | `paid` / `pending` / `overdue` |
+| `type_document` | string | ❌ | Document type (e.g., `CNPJ`) |
+| `document` | string | ❌ | Document number |
+| `status` | string | ❌ | `active` / `inactive` / `suspended` |
+| `foundation_date` | datetime | ❌ | ISO 8601 date |
+| `logo` | string | ❌ | URL of the company logo |
+| `phone_number` | string | ❌ | Contact phone number |
+| `avatar_url` | string | ❌ | URL of the company avatar |
+| `next_date_payment` | datetime | 🔒 read-only | Auto-calculated |
+| `last_date_payment` | datetime | 🔒 read-only | Auto-calculated |
+
+---
+
+### Students — `/api/students/`
+
+#### `GET /api/students/`
+
+Returns a list of all students.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "company_id": 1,
+    "full_name": "João Silva",
+    "email": "joao.silva@email.com",
+    "status": "active",
+    "level": "client",
+    "document": "123.456.789-00",
+    "date_of_birth": "1995-06-20T00:00:00Z",
+    "phone_number": "11988880000",
+    "gender": "male",
+    "avatar_url": null,
+    "created_at": "2026-01-10T08:00:00Z",
+    "updated_at": "2026-03-01T10:00:00Z"
+  }
+]
+```
+
+#### `POST /api/students/`
+
+Creates a new student. `password` is write-only.
+
+**Request Body:**
+```json
+{
+  "company_id": 1,
+  "full_name": "João Silva",
+  "email": "joao.silva@email.com",
+  "password": "securepassword123",
+  "status": "active",
+  "level": "client",
+  "document": "123.456.789-00",
+  "date_of_birth": "1995-06-20T00:00:00Z",
+  "phone_number": "11988880000",
+  "gender": "male",
+  "avatar_url": null
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "company_id": 1,
+  "full_name": "João Silva",
+  "email": "joao.silva@email.com",
+  "status": "active",
+  "level": "client",
+  "document": "123.456.789-00",
+  "date_of_birth": "1995-06-20T00:00:00Z",
+  "phone_number": "11988880000",
+  "gender": "male",
+  "avatar_url": null,
+  "created_at": "2026-03-07T10:00:00Z",
+  "updated_at": "2026-03-07T10:00:00Z"
+}
+```
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `company_id` | integer | ✅ | ID of the owning company |
+| `full_name` | string | ✅ | Student's full name |
+| `email` | string (email) | ✅ | Unique email address |
+| `password` | string | ✅ | Password (write-only) |
+| `status` | string | ❌ | `active` / `inactive` |
+| `level` | string | ❌ | `client` / `admin` / `personal` |
+| `document` | string | ❌ | CPF or other document |
+| `date_of_birth` | datetime | ❌ | ISO 8601 date |
+| `phone_number` | string | ❌ | Contact phone number |
+| `gender` | string | ❌ | Gender |
+| `avatar_url` | string | ❌ | URL of profile picture |
+
+---
+
+### Enrollments — `/api/enrollments/`
+
+#### `GET /api/enrollments/`
+
+Returns a list of all active enrollments.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "student": 1,
+    "modality_id": 3,
+    "enrolled_at": "2026-02-01T09:00:00Z",
+    "active": true
+  }
+]
+```
+
+#### `POST /api/enrollments/`
+
+Enrolls a student in a modality.
+
+**Request Body:**
+```json
+{
+  "student": 1,
+  "modality_id": 3,
+  "active": true
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "student": 1,
+  "modality_id": 3,
+  "enrolled_at": "2026-03-07T10:00:00Z",
+  "active": true
+}
+```
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `student` | integer | ✅ | ID of the student |
+| `modality_id` | integer | ✅ | ID of the modality |
+| `active` | boolean | ❌ | Defaults to `true` |
+| `enrolled_at` | datetime | 🔒 read-only | Auto-set on creation |
+
+---
+
+### Modalities — `/api/modalities/`
+
+#### `GET /api/modalities/`
+
+Returns a list of all active (non-deleted) modalities.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "company_id": 1,
+    "name": "Musculação",
+    "description": "Treino de força com equipamentos",
+    "status": "active",
+    "max_capacity": 30,
+    "created_at": "2026-01-05T08:00:00Z",
+    "updated_at": "2026-01-05T08:00:00Z",
+    "deleted_at": null
+  }
+]
+```
+
+#### `POST /api/modalities/`
+
+Creates a new modality.
+
+**Request Body:**
+```json
+{
+  "company_id": 1,
+  "name": "Musculação",
+  "description": "Treino de força com equipamentos",
+  "status": "active",
+  "max_capacity": 30
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "company_id": 1,
+  "name": "Musculação",
+  "description": "Treino de força com equipamentos",
+  "status": "active",
+  "max_capacity": 30,
+  "created_at": "2026-03-07T10:00:00Z",
+  "updated_at": "2026-03-07T10:00:00Z",
+  "deleted_at": null
+}
+```
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `company_id` | integer | ✅ | ID of the owning company |
+| `name` | string | ✅ | Modality name |
+| `description` | string | ❌ | Detailed description |
+| `status` | string | ❌ | `active` / `inactive` (default: `active`) |
+| `max_capacity` | integer | ❌ | Maximum number of enrolled students |
+
+---
+
+### Payments — `/api/payments/`
+
+#### `GET /api/payments/`
+
+Returns a list of all payments.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "company_id": 1,
+    "student_id": 1,
+    "amount": "150.00",
+    "status": "pending",
+    "payment_method": "pix",
+    "due_date": "2026-04-10T00:00:00Z",
+    "paid_at": null,
+    "description": "Mensalidade Março/2026",
+    "created_at": "2026-03-07T10:00:00Z",
+    "updated_at": "2026-03-07T10:00:00Z"
+  }
+]
+```
+
+#### `POST /api/payments/`
+
+Creates a new payment record.
+
+**Request Body:**
+```json
+{
+  "company_id": 1,
+  "student_id": 1,
+  "amount": "150.00",
+  "status": "pending",
+  "payment_method": "pix",
+  "due_date": "2026-04-10T00:00:00Z",
+  "description": "Mensalidade Março/2026"
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "company_id": 1,
+  "student_id": 1,
+  "amount": "150.00",
+  "status": "pending",
+  "payment_method": "pix",
+  "due_date": "2026-04-10T00:00:00Z",
+  "paid_at": null,
+  "description": "Mensalidade Março/2026",
+  "created_at": "2026-03-07T10:00:00Z",
+  "updated_at": "2026-03-07T10:00:00Z"
+}
+```
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `company_id` | integer | ✅ | ID of the company |
+| `student_id` | integer | ✅ | ID of the student |
+| `amount` | decimal | ✅ | Payment amount |
+| `status` | string | ❌ | `pending` / `paid` / `overdue` / `cancelled` (default: `pending`) |
+| `payment_method` | string | ❌ | `cash` / `card` / `pix` / `transfer` |
+| `due_date` | datetime | ❌ | Payment due date |
+| `paid_at` | datetime | 🔒 read-only | Set when payment is marked as paid |
+| `description` | string | ❌ | Description of the payment |
+
+---
+
+### Subscriptions — `/api/subscriptions/`
+
+#### `GET /api/subscriptions/`
+
+Returns a list of all active subscriptions.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "company_id": 1,
+    "student_id": 1,
+    "plan_name": "Plano Mensal",
+    "amount": "120.00",
+    "billing_cycle": "monthly",
+    "status": "active",
+    "start_date": "2026-01-01T00:00:00Z",
+    "end_date": null,
+    "next_billing_date": "2026-04-01T00:00:00Z",
+    "created_at": "2026-01-01T10:00:00Z",
+    "updated_at": "2026-03-01T10:00:00Z"
+  }
+]
+```
+
+#### `POST /api/subscriptions/`
+
+Creates a new subscription.
+
+**Request Body:**
+```json
+{
+  "company_id": 1,
+  "student_id": 1,
+  "plan_name": "Plano Mensal",
+  "amount": "120.00",
+  "billing_cycle": "monthly",
+  "status": "active",
+  "start_date": "2026-01-01T00:00:00Z",
+  "end_date": null
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "company_id": 1,
+  "student_id": 1,
+  "plan_name": "Plano Mensal",
+  "amount": "120.00",
+  "billing_cycle": "monthly",
+  "status": "active",
+  "start_date": "2026-01-01T00:00:00Z",
+  "end_date": null,
+  "next_billing_date": "2026-04-01T00:00:00Z",
+  "created_at": "2026-03-07T10:00:00Z",
+  "updated_at": "2026-03-07T10:00:00Z"
+}
+```
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `company_id` | integer | ✅ | ID of the company |
+| `student_id` | integer | ✅ | ID of the student |
+| `plan_name` | string | ✅ | Name of the subscription plan |
+| `amount` | decimal | ✅ | Recurring billing amount |
+| `billing_cycle` | string | ❌ | `monthly` / `quarterly` / `yearly` (default: `monthly`) |
+| `status` | string | ❌ | `active` / `cancelled` / `suspended` (default: `active`) |
+| `start_date` | datetime | ❌ | Subscription start date |
+| `end_date` | datetime | ❌ | Subscription end date (null = ongoing) |
+| `next_billing_date` | datetime | 🔒 read-only | Auto-calculated based on billing cycle |
+
+---
+
+### Staff — `/api/staff/`
+
+#### `GET /api/staff/`
+
+Returns a list of all active staff members.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "company_id": 1,
+    "student_id": 2,
+    "role": 1,
+    "status": "active",
+    "hired_at": "2025-03-01T00:00:00Z",
+    "fired_at": null,
+    "created_at": "2025-03-01T08:00:00Z",
+    "updated_at": "2026-01-10T10:00:00Z"
+  }
+]
+```
+
+#### `POST /api/staff/`
+
+Registers a new staff member.
+
+**Request Body:**
+```json
+{
+  "company_id": 1,
+  "student_id": 2,
+  "role": 1,
+  "status": "active",
+  "hired_at": "2025-03-01T00:00:00Z"
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "company_id": 1,
+  "student_id": 2,
+  "role": 1,
+  "status": "active",
+  "hired_at": "2025-03-01T00:00:00Z",
+  "fired_at": null,
+  "created_at": "2026-03-07T10:00:00Z",
+  "updated_at": "2026-03-07T10:00:00Z"
+}
+```
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `company_id` | integer | ✅ | ID of the company |
+| `student_id` | integer | ✅ | ID of the student (staff member) |
+| `role` | integer | ❌ | ID of the role assigned |
+| `status` | string | ❌ | `active` / `inactive` (default: `active`) |
+| `hired_at` | datetime | ❌ | Date the staff member was hired |
+| `fired_at` | datetime | ❌ | Date the staff member was dismissed |
+
+---
+
+### Roles — `/api/roles/`
+
+#### `GET /api/roles/`
+
+Returns a list of all roles.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Personal Trainer",
+    "description": "Instrutor de treino personalizado",
+    "permissions": ["view_students", "manage_enrollments"],
+    "created_at": "2026-01-01T08:00:00Z",
+    "updated_at": "2026-01-01T08:00:00Z"
+  }
+]
+```
+
+#### `POST /api/roles/`
+
+Creates a new role.
+
+**Request Body:**
+```json
+{
+  "name": "Personal Trainer",
+  "description": "Instrutor de treino personalizado",
+  "permissions": ["view_students", "manage_enrollments"]
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "name": "Personal Trainer",
+  "description": "Instrutor de treino personalizado",
+  "permissions": ["view_students", "manage_enrollments"],
+  "created_at": "2026-03-07T10:00:00Z",
+  "updated_at": "2026-03-07T10:00:00Z"
+}
+```
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | string | ✅ | Unique role name |
+| `description` | string | ❌ | Role description |
+| `permissions` | array of strings | ❌ | List of permission identifiers |
+
+---
+
+### Products — `/api/products/`
+
+#### `GET /api/products/`
+
+Returns a list of all active (non-deleted) products.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "company_id": 1,
+    "category": 2,
+    "name": "Whey Protein 1kg",
+    "description": "Suplemento proteico sabor baunilha",
+    "price": "89.90",
+    "stock": 50,
+    "status": "active",
+    "sku": "WP-VAN-1KG",
+    "image_url": "https://cdn.example.com/products/whey.png",
+    "created_at": "2026-02-01T08:00:00Z",
+    "updated_at": "2026-02-15T10:00:00Z",
+    "deleted_at": null
+  }
+]
+```
+
+#### `POST /api/products/`
+
+Creates a new product.
+
+**Request Body:**
+```json
+{
+  "company_id": 1,
+  "category": 2,
+  "name": "Whey Protein 1kg",
+  "description": "Suplemento proteico sabor baunilha",
+  "price": "89.90",
+  "stock": 50,
+  "status": "active",
+  "sku": "WP-VAN-1KG",
+  "image_url": "https://cdn.example.com/products/whey.png"
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "company_id": 1,
+  "category": 2,
+  "name": "Whey Protein 1kg",
+  "description": "Suplemento proteico sabor baunilha",
+  "price": "89.90",
+  "stock": 50,
+  "status": "active",
+  "sku": "WP-VAN-1KG",
+  "image_url": "https://cdn.example.com/products/whey.png",
+  "created_at": "2026-03-07T10:00:00Z",
+  "updated_at": "2026-03-07T10:00:00Z",
+  "deleted_at": null
+}
+```
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `company_id` | integer | ✅ | ID of the owning company |
+| `name` | string | ✅ | Product name |
+| `price` | decimal | ✅ | Product price |
+| `category` | integer | ❌ | ID of the product category |
+| `description` | string | ❌ | Product description |
+| `stock` | integer | ❌ | Available stock quantity (default: `0`) |
+| `status` | string | ❌ | `active` / `inactive` / `out_of_stock` (default: `active`) |
+| `sku` | string | ❌ | Unique stock-keeping unit identifier |
+| `image_url` | string | ❌ | URL of the product image |
+
+---
+
+### Categories — `/api/categories/`
+
+#### `GET /api/categories/`
+
+Returns a list of all categories.
+
+**Response `200 OK`:**
+```json
+[
+  {
+    "id": 1,
+    "name": "Suplementos",
+    "description": "Suplementos alimentares e vitaminas",
+    "created_at": "2026-01-01T08:00:00Z",
+    "updated_at": "2026-01-01T08:00:00Z"
+  }
+]
+```
+
+#### `POST /api/categories/`
+
+Creates a new product category.
+
+**Request Body:**
+```json
+{
+  "name": "Suplementos",
+  "description": "Suplementos alimentares e vitaminas"
+}
+```
+
+**Response `201 Created`:**
+```json
+{
+  "id": 1,
+  "name": "Suplementos",
+  "description": "Suplementos alimentares e vitaminas",
+  "created_at": "2026-03-07T10:00:00Z",
+  "updated_at": "2026-03-07T10:00:00Z"
+}
+```
+
+**Field Reference:**
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `name` | string | ✅ | Unique category name |
+| `description` | string | ❌ | Category description |
+
+---
+
+### Common Response Codes
+
+| Code | Meaning |
+|---|---|
+| `200 OK` | Request successful (GET, PUT, PATCH) |
+| `201 Created` | Resource successfully created (POST) |
+| `204 No Content` | Resource successfully deleted (DELETE) |
+| `400 Bad Request` | Validation error — check request body |
+| `404 Not Found` | Resource with given ID does not exist |
+| `500 Internal Server Error` | Unexpected server error |
+
+**Example `400 Bad Request` response:**
+```json
+{
+  "email": ["This field must be unique."],
+  "amount": ["A valid number is required."]
+}
+```
 
 ---
 
@@ -336,9 +1149,9 @@ Interactive documentation is available after starting the server:
 
 | UI | URL |
 |---|---|
-| Swagger UI | `/swagger/` |
-| ReDoc | `/redoc/` |
-| OpenAPI JSON | `/swagger.json/` |
+| Swagger UI | `http://localhost:8000/swagger/` |
+| ReDoc | `http://localhost:8000/redoc/` |
+| OpenAPI JSON | `http://localhost:8000/swagger.json/` |
 
 ---
 
@@ -393,4 +1206,32 @@ Interactive documentation is available after starting the server:
    ```
 
 The API will be available at `http://localhost:8000/api/`.
+
+---
+
+### Running with Docker
+
+The project includes a full Docker Compose setup with Nginx, Gunicorn, and PostgreSQL.
+
+1. **Configure environment variables**
+
+   Create a `.env` file as described above, using `DB_HOST=academia_db` to match the Docker service name.
+
+2. **Start all services**
+   ```bash
+   docker-compose up --build
+   ```
+
+3. **Run migrations inside the container**
+   ```bash
+   docker-compose exec academia_web python manage.py migrate
+   ```
+
+The API will be available at `http://localhost/api/` (via Nginx on port 80).
+
+| Service | Container | Port |
+|---|---|---|
+| Django + Gunicorn | `academia_web` | 8000 (internal) |
+| PostgreSQL | `academia_db` | 5438 → 5432 |
+| Nginx | `academia_nginx` | 80 |
 
