@@ -38,7 +38,15 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Legacy monolithic app (kept for migration reference)
     "gym",
+    # DDD Bounded Contexts
+    "company.apps.CompanyConfig",
+    "students.apps.StudentsConfig",
+    "modalities.apps.ModalitiesConfig",
+    "financial.apps.FinancialConfig",
+    "administrative.apps.AdministrativeConfig",
+    "products.apps.ProductsConfig",
     "drf_yasg",
     "rest_framework",
 ]
