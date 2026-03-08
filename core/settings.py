@@ -27,9 +27,14 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 # DEBUG = True
 
 ALLOWED_HOSTS = [
-    h.strip() for h in config("ALLOWED_HOSTS", default="localhost,127.0.0.1").split(",")
+    h.strip() for h in config("ALLOWED_HOSTS".split(","))
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{h.strip()}"
+    for h in config("CSRF_TRUSTED_ORIGINS", default="").split(",")
+    if h.strip()
+]
 
 # Application definition
 
