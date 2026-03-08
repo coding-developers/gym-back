@@ -27,7 +27,7 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 # DEBUG = True
 
 ALLOWED_HOSTS = [
-    h.strip() for h in config("ALLOWED_HOSTS")
+    h.strip() for h in config("ALLOWED_HOSTS", default="").split(",") if h.strip()
 ]
 
 CSRF_TRUSTED_ORIGINS = [
