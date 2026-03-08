@@ -22,9 +22,9 @@ services:
       - .env                     # keep credentials in .env as well
     environment:
       # fallback defaults if not provided in .env
-      - POSTGRES_DB=${DB_NAME:-academia}
-      - POSTGRES_USER=${DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-1234}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
     ports:
       - "5438:5432"
     volumes:
