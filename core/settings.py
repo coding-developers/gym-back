@@ -98,7 +98,7 @@ DATABASES = {
         "NAME": config("DB_NAME", default="academia"),
         "USER": config("DB_USER", default="postgres"),
         "PASSWORD": config("DB_PASSWORD", default="1234"),
-        "HOST": config("DB_HOST", default="academia_db"),
+        "HOST": config("DB_HOST", default="db"),
         "PORT": config("DB_PORT", default="5432"),
     }
 }
