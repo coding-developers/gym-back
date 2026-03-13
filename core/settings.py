@@ -95,7 +95,7 @@ WSGI_APPLICATION = "core.wsgi.application"
 
 DATABASES = {
     "default": dj_database_url.config(
-        default=config("DATABASE_URL"),
+        default=config("DATABASE_URL", default="postgres://postgres:1234@academia_db:5432/academia"),
         conn_max_age=600,
     )
 }
