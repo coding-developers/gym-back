@@ -6,7 +6,7 @@ services:
     container_name: academia_web
     command: gunicorn core.wsgi:application --bind 0.0.0.0:8000
     env_file:
-      - .env                     # load database settings from .env
+      - .env  
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -19,7 +19,7 @@ services:
     image: postgres:15
     container_name: academia_db
     env_file:
-      - .env                     # keep credentials in .env as well
+      - .env 
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}
