@@ -26,8 +26,11 @@ DEBUG = config("DEBUG", default=False, cast=bool)
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
 ALLOWED_HOSTS = [
-    h.strip() for h in config("ALLOWED_HOSTS", default="").split(",") if h.strip()
+    h.strip() for h in config("ALLOWED_HOSTS", default="*").split(",") if h.strip()
 ]
 
 CSRF_TRUSTED_ORIGINS = [
