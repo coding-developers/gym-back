@@ -9,7 +9,7 @@ services:
              python manage.py collectstatic --noinput &&
              gunicorn core.wsgi:application --bind 0.0.0.0:8000"
     env_file:
-      - .env
+      - .env  
     volumes:
       - .:/app
       - static_volume:/app/staticfiles
@@ -30,7 +30,7 @@ services:
       timeout: 5s
       retries: 5
     env_file:
-      - .env
+      - .env 
     environment:
       - POSTGRES_DB=${DB_NAME:-academia}
       - POSTGRES_USER=${DB_USER:-postgres}
