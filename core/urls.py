@@ -22,7 +22,6 @@ schema_view = get_schema_view(
 
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
     # Legacy routes (gym app)
     path("api/", include("gym.urls")),
     # DDD Bounded Context routes
@@ -32,6 +31,7 @@ urlpatterns = [
     path("api/", include("financial.urls")),
     path("api/", include("administrative.urls")),
     path("api/", include("products.urls")),
+    path("api/auth/", include("authentication.urls")),
     # Rotas do Swagger
     path(
         "swagger/",
