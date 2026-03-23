@@ -163,7 +163,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = [
-    o.strip() for o in config("CORS_ALLOWED_ORIGINS", default="http://localhost:8080").split(",") if o.strip()
+    o.strip() for o in config("CORS_ALLOWED_ORIGINS", default="http://localhost:8080,https://chesshall.vercel.app").split(",") if o.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
 
