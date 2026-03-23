@@ -1,10 +1,9 @@
 from rest_framework import viewsets
-from core.renderers import DestroyMixin
 from .models import Student, Enrollment
 from .serializers import StudentSerializer, EnrollmentSerializer
 
 
-class StudentViewSet(DestroyMixin, viewsets.ModelViewSet):
+class StudentViewSet(viewsets.ModelViewSet):
     """
     ViewSet for the Alunos (Students) domain.
     Provides CRUD operations for gym member management.
@@ -13,7 +12,7 @@ class StudentViewSet(DestroyMixin, viewsets.ModelViewSet):
     serializer_class = StudentSerializer
 
 
-class EnrollmentViewSet(DestroyMixin, viewsets.ModelViewSet):
+class EnrollmentViewSet(viewsets.ModelViewSet):
     """
     ViewSet for managing student enrollments in modalities.
     """
