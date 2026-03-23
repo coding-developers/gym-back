@@ -26,26 +26,3 @@ class PaymentRepository:
         Payment = self._get_model()
         Payment.objects.filter(pk=payment_id).update(status="paid", paid_at=timezone.now())
         return self.get_by_id(payment_id)
-
-
-class SubscriptionRepository:
-    def _get_model(self):
-        from financial.models import Subscription
-        return Subscription
-
-    def create(self, data: dict):
-        Subscription = self._get_model()
-        return Subscription.objects.create(**data)
-
-    def get_by_id(self, subscription_id: int):
-        Subscription = self._get_model()
-        return Subscription.objects.get(pk=subscription_id)
-
-    def list_active_by_company(self, company_id: int):
-        Subscription = self._get_model()
-        return Subscription.objects.filter(company_id=company_id, status="active")
-
-    def cancel(self, subscription_id: int):
-        Subscription = self._get_model()
-        Subscription.objects.filter(pk=subscription_id).update(status="cancelled")
-        return self.get_by_id(subscription_id)

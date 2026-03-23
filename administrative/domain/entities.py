@@ -31,7 +31,7 @@ class StaffEntity:
 
     id: Optional[int]
     company_id: int
-    student_id: int  # Reference to the Students domain
+    user_id: int
     role_id: Optional[int]
     status: str = "active"
     hired_at: Optional[datetime] = None
