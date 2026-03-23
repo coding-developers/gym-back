@@ -35,7 +35,7 @@ ALLOWED_HOSTS = [
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    f"https://{h.strip()}"
+    h.strip()
     for h in config("CSRF_TRUSTED_ORIGINS", default="").split(",")
     if h.strip()
 ]
