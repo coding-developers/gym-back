@@ -53,7 +53,6 @@ INSTALLED_APPS = [
     "gym",
     # DDD Bounded Contexts
     "company.apps.CompanyConfig",
-    "students.apps.StudentsConfig",
     "modalities.apps.ModalitiesConfig",
     "financial.apps.FinancialConfig",
     "administrative.apps.AdministrativeConfig",

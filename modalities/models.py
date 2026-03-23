@@ -14,6 +14,7 @@ class Modality(models.Model):
     company_id = models.IntegerField(db_index=True)
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="active")
     max_capacity = models.IntegerField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)

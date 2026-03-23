@@ -4,7 +4,7 @@ from django.utils import timezone
 
 class Payment(models.Model):
     """
-    Represents a financial transaction (payment) in the Financeiro domain.
+    Representa um pagamento de mensalidade de um usuário.
     """
 
     STATUS_CHOICES = [
@@ -21,11 +21,12 @@ class Payment(models.Model):
     ]
 
     company_id = models.IntegerField(db_index=True)
-    student_id = models.IntegerField(db_index=True)
+    user_id = models.IntegerField(db_index=True)
+    modality_id = models.IntegerField(null=True, blank=True, db_index=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="pending")
     payment_method = models.CharField(max_length=20, choices=METHOD_CHOICES, null=True, blank=True)
-    due_date = models.DateTimeField(null=True, blank=True)
+    due_date = models.DateField(null=True, blank=True)
     paid_at = models.DateTimeField(null=True, blank=True)
     description = models.CharField(max_length=255, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
@@ -40,38 +41,56 @@ class Payment(models.Model):
         return f"Payment #{self.pk} - {self.amount} ({self.status})"
 
 
-class Subscription(models.Model):
+class ProductTransaction(models.Model):
     """
-    Represents a recurring subscription plan for a student.
+    Controle financeiro de produtos — entradas (compra/estoque) e saídas (venda).
+    Atualiza automaticamente o estoque do produto ao ser salvo.
     """
 
-    CYCLE_CHOICES = [
-        ("monthly", "Monthly"),
-        ("quarterly", "Quarterly"),
-        ("yearly", "Yearly"),
+    TYPE_CHOICES = [
+        ("entrada", "Entrada"),
+        ("saida", "Saída"),
     ]
-    STATUS_CHOICES = [
-        ("active", "Active"),
-        ("cancelled", "Cancelled"),
-        ("suspended", "Suspended"),
+    METHOD_CHOICES = [
+        ("cash", "Cash"),
+        ("card", "Card"),
+        ("pix", "Pix"),
+        ("transfer", "Transfer"),
     ]
 
     company_id = models.IntegerField(db_index=True)
-    student_id = models.IntegerField(db_index=True)
-    plan_name = models.CharField(max_length=100)
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    billing_cycle = models.CharField(max_length=20, choices=CYCLE_CHOICES, default="monthly")
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="active")
-    start_date = models.DateTimeField(null=True, blank=True)
-    end_date = models.DateTimeField(null=True, blank=True)
-    next_billing_date = models.DateTimeField(null=True, blank=True)
+    product_id = models.IntegerField(db_index=True)
+    user_id = models.IntegerField(null=True, blank=True, db_index=True)
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
+    quantity = models.IntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
+    payment_method = models.CharField(max_length=20, choices=METHOD_CHOICES, null=True, blank=True)
+    notes = models.TextField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         app_label = "financial"
-        verbose_name = "Subscription"
-        verbose_name_plural = "Subscriptions"
+        verbose_name = "Product Transaction"
+        verbose_name_plural = "Product Transactions"
+
+    def save(self, *args, **kwargs):
+        self.total = self.quantity * self.unit_price
+
+        # Atualiza estoque do produto
+        from products.models import Product
+        try:
+            product = Product.objects.get(pk=self.product_id)
+            if self._state.adding:  # só na criação
+                if self.type == "entrada":
+                    product.stock += self.quantity
+                else:
+                    product.stock -= self.quantity
+                product.save(update_fields=["stock"])
+        except Product.DoesNotExist:
+            pass
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Subscription #{self.pk} - {self.plan_name} ({self.status})"
+        return f"{self.type.capitalize()} #{self.pk} - Produto {self.product_id} ({self.quantity}x)"
