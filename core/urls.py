@@ -26,7 +26,6 @@ urlpatterns = [
     path("api/", include("gym.urls")),
     # DDD Bounded Context routes
     path("api/", include("company.urls")),
-    path("api/", include("students.urls")),
     path("api/", include("modalities.urls")),
     path("api/", include("financial.urls")),
     path("api/", include("administrative.urls")),

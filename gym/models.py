@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
 
@@ -96,8 +96,24 @@ class User(models.Model):
     phone_number = models.CharField(max_length=255, null=True)
     gender = models.CharField(max_length=255, null=True)
     avatar_url = models.CharField(max_length=255, null=True)
+    day_of_payment = models.IntegerField(null=True, blank=True)
+    next_date_payment = models.DateField(null=True, blank=True)
+    last_date_payment = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if self.day_of_payment and not self.next_date_payment:
+            today = timezone.now().date()
+            year = today.year
+            month = today.month
+            if today.day > self.day_of_payment:
+                month += 1
+                if month > 12:
+                    month = 1
+                    year += 1
+            self.next_date_payment = date(year, month, self.day_of_payment)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.full_name

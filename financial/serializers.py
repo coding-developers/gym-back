@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Payment, Subscription
+from .models import Payment, ProductTransaction
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -9,8 +9,8 @@ class PaymentSerializer(serializers.ModelSerializer):
         read_only_fields = ("created_at", "updated_at", "paid_at")
 
 
-class SubscriptionSerializer(serializers.ModelSerializer):
+class ProductTransactionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Subscription
+        model = ProductTransaction
         fields = "__all__"
-        read_only_fields = ("created_at", "updated_at", "next_billing_date")
+        read_only_fields = ("total", "created_at")
