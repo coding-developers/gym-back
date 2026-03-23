@@ -1,0 +1,24 @@
+[0;1;32m●[0m docker.service - Docker Application Container Engine
+     Loaded: loaded (]8;;file://pedro-lisboa-Vostro-3520/usr/lib/systemd/system/docker.service/usr/lib/systemd/system/docker.service]8;;; [0;1;32menabled[0m; preset: [0;1;32menabled[0m)
+     Active: [0;1;32mactive (running)[0m since Sun 2025-12-07 17:00:15 -03; 55min ago
+TriggeredBy: [0;1;32m●[0m docker.socket
+       Docs: ]8;;https://docs.docker.comhttps://docs.docker.com]8;;
+   Main PID: 4415 (dockerd)
+      Tasks: 36
+     Memory: 122.2M (peak: 123.9M)
+        CPU: 2.834s
+     CGroup: /system.slice/docker.service
+             ├─[0;38;5;245m4415 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock[0m
+             ├─[0;38;5;245m4828 /usr/bin/docker-proxy -proto tcp -host-ip 0.0.0.0 -host-port 5432 -container-ip 172.18.0.2 -container-port 5432 -use-listen-fd[0m
+             └─[0;38;5;245m4834 /usr/bin/docker-proxy -proto tcp -host-ip :: -host-port 5432 -container-ip 172.18.0.2 -container-port 5432 -use-listen-fd[0m
+
+dez 07 17:00:14 pedro-lisboa-Vostro-3520 dockerd[4415]: time="2025-12-07T17:00:14.564797821-03:00" level=info msg="Deleting nftables IPv6 rules" error="exit status 1"
+dez 07 17:00:15 pedro-lisboa-Vostro-3520 dockerd[4415]: time="2025-12-07T17:00:15.146012634-03:00" level=warning msg="error locating sandbox id af29cf51620099636947a6925eb6afd3954d52394000b04999b3c7e0b95da541: sandbox af29cf51620099636947a6925eb6afd3954d52394000b04999b3c7e0b95da541 not found"
+dez 07 17:00:15 pedro-lisboa-Vostro-3520 dockerd[4415]: time="2025-12-07T17:00:15.348965442-03:00" level=info msg="sbJoin: gwep4 ''->'1e3699986892', gwep6 ''->''" eid=1e3699986892 ep=ms-tenant-postgres-1 net=ms-tenant_sail nid=5ee57ea89414
+dez 07 17:00:15 pedro-lisboa-Vostro-3520 dockerd[4415]: time="2025-12-07T17:00:15.410280084-03:00" level=info msg="Loading containers: done."
+dez 07 17:00:15 pedro-lisboa-Vostro-3520 dockerd[4415]: time="2025-12-07T17:00:15.428517346-03:00" level=info msg="Docker daemon" commit=de45c2a containerd-snapshotter=false storage-driver=overlay2 version=29.1.2
+dez 07 17:00:15 pedro-lisboa-Vostro-3520 dockerd[4415]: time="2025-12-07T17:00:15.428817430-03:00" level=info msg="Initializing buildkit"
+dez 07 17:00:15 pedro-lisboa-Vostro-3520 dockerd[4415]: time="2025-12-07T17:00:15.498617888-03:00" level=info msg="Completed buildkit initialization"
+dez 07 17:00:15 pedro-lisboa-Vostro-3520 dockerd[4415]: time="2025-12-07T17:00:15.507249240-03:00" level=info msg="Daemon has completed initialization"
+dez 07 17:00:15 pedro-lisboa-Vostro-3520 dockerd[4415]: time="2025-12-07T17:00:15.507385138-03:00" level=info msg="API listen on /run/docker.sock"
+dez 07 17:00:15 pedro-lisboa-Vostro-3520 systemd[1]: Started docker.service - Docker Application Container Engine.
