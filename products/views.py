@@ -1,9 +1,10 @@
 from rest_framework import viewsets
+from core.renderers import DestroyMixin
 from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
 
 
-class CategoryViewSet(viewsets.ModelViewSet):
+class CategoryViewSet(DestroyMixin, viewsets.ModelViewSet):
     """
     ViewSet for the Produtos domain — Categories.
     """
@@ -11,7 +12,7 @@ class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = CategorySerializer
 
 
-class ProductViewSet(viewsets.ModelViewSet):
+class ProductViewSet(DestroyMixin, viewsets.ModelViewSet):
     """
     ViewSet for the Produtos domain — Products.
     """
