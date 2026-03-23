@@ -1,9 +1,10 @@
 from rest_framework import viewsets
+from core.renderers import DestroyMixin
 from .models import Payment, Subscription
 from .serializers import PaymentSerializer, SubscriptionSerializer
 
 
-class PaymentViewSet(viewsets.ModelViewSet):
+class PaymentViewSet(DestroyMixin, viewsets.ModelViewSet):
     """
     ViewSet for the Financeiro (Financial) domain — Payments.
     """
@@ -11,7 +12,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
     serializer_class = PaymentSerializer
 
 
-class SubscriptionViewSet(viewsets.ModelViewSet):
+class SubscriptionViewSet(DestroyMixin, viewsets.ModelViewSet):
     """
     ViewSet for the Financeiro (Financial) domain — Subscriptions.
     """
