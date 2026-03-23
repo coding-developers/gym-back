@@ -6,9 +6,6 @@ from dateutil.relativedelta import relativedelta
 
 class Company(models.Model):
     name = models.CharField(max_length=255)
-    day_of_payment = models.IntegerField()
-    next_date_payment = models.DateTimeField(null=True, blank=True)
-    last_date_payment = models.DateTimeField(null=True, blank=True)
     type_document = models.CharField(max_length=255, null=True)
     document = models.CharField(max_length=255, null=True)
     status = models.CharField(max_length=255, null=True)
