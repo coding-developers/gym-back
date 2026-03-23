@@ -22,12 +22,6 @@ class StandardRenderer(JSONRenderer):
 
         return super().render(wrapped, accepted_media_type, renderer_context)
 
-class DestroyMixin:
-    def destroy(self, request, *args, **kwargs):
-        super().destroy(request, *args, **kwargs)
-        return Response(None, status=status.HTTP_200_OK)
-
-
     def _extract_message(self, data):
         if isinstance(data, dict):
             for key in ("detail", "message", "error"):
@@ -38,3 +32,9 @@ class DestroyMixin:
             if isinstance(first_error, list):
                 return str(first_error[0])
         return str(data) if data else "error"
+
+
+class DestroyMixin:
+    def destroy(self, request, *args, **kwargs):
+        super().destroy(request, *args, **kwargs)
+        return Response(None, status=status.HTTP_200_OK)
