@@ -1,10 +1,9 @@
 from rest_framework import viewsets
-from core.renderers import DestroyMixin
 from .models import Role, Staff
 from .serializers import RoleSerializer, StaffSerializer
 
 
-class RoleViewSet(DestroyMixin, viewsets.ModelViewSet):
+class RoleViewSet(viewsets.ModelViewSet):
     """
     ViewSet for the Administrativo domain — Roles.
     """
@@ -12,7 +11,7 @@ class RoleViewSet(DestroyMixin, viewsets.ModelViewSet):
     serializer_class = RoleSerializer
 
 
-class StaffViewSet(DestroyMixin, viewsets.ModelViewSet):
+class StaffViewSet(viewsets.ModelViewSet):
     """
     ViewSet for the Administrativo domain — Staff.
     """

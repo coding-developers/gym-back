@@ -61,13 +61,11 @@ INSTALLED_APPS = [
     "drf_yasg",
     "rest_framework",
     "authentication.apps.AuthenticationConfig",
-    "corsheaders",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -117,7 +115,6 @@ REST_FRAMEWORK = {
         "rest_framework_simplejwt.authentication.JWTAuthentication",
     ),
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
-    "DEFAULT_RENDERER_CLASSES": ("core.renderers.StandardRenderer",),
 }
 
 # Password validation
@@ -161,11 +158,6 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-
-CORS_ALLOWED_ORIGINS = [
-    o.strip() for o in config("CORS_ALLOWED_ORIGINS", default="http://localhost:8080").split(",") if o.strip()
-]
-CORS_ALLOW_CREDENTIALS = True
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
