@@ -15,7 +15,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        exclude = ['gym']
+        fields = '__all__'
         read_only_fields = (
             "next_date_payment",
             "last_date_payment",
