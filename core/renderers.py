@@ -28,9 +28,10 @@ class StandardRenderer(JSONRenderer):
                 if key in data:
                     return str(data[key])
             # validação de campos (ex: {"email": ["Este campo é obrigatório."]})
-            first_error = next(iter(data.values()), None)
+            first_key = next(iter(data), None)
+            first_error = data[first_key] if first_key else None
             if isinstance(first_error, list):
-                return str(first_error[0])
+                return f"{first_key}: {first_error[0]}"
         return str(data) if data else "error"
 
 
