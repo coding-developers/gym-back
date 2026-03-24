@@ -93,7 +93,7 @@ class User(models.Model):
     level = models.CharField(max_length=20, choices=LEVEL_CHOICES, null=True)
     document = models.CharField(max_length=255, null=True, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
-    modalities = models.ManyToManyField(Modalitie, blank=True, related_name="users")
+    # modality_ids gerenciados via UserModality (referência por ID à modalities.Modality)
     email = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
@@ -131,3 +131,14 @@ class User(models.Model):
 
     def __str__(self):
         return self.full_name
+
+
+class UserModality(models.Model):
+    """
+    Relacionamento entre User e modalities.Modality via referência por ID (sem FK entre apps).
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_modalities")
+    modality_id = models.IntegerField(db_index=True)
+
+    class Meta:
+        unique_together = ("user", "modality_id")
