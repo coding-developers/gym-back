@@ -10,6 +10,6 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("name", "price", "stock", "status", "company_id", "category")
+    list_display = ("name", "price", "stock", "status", "gym_id", "category")
     list_filter = ("status", "category")
     search_fields = ("name", "sku")
