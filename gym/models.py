@@ -121,5 +121,13 @@ class User(models.Model):
             self.next_date_payment = date(year, month, self.day_of_payment)
         super().save(*args, **kwargs)
 
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_active(self):
+        return self.status == "active"
+
     def __str__(self):
         return self.full_name
