@@ -20,7 +20,7 @@ class Payment(models.Model):
         ("transfer", "Transfer"),
     ]
 
-    company_id = models.IntegerField(db_index=True)
+    gym_id = models.IntegerField(db_index=True)
     user_id = models.IntegerField(db_index=True)
     modality_id = models.IntegerField(null=True, blank=True, db_index=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -58,7 +58,7 @@ class ProductTransaction(models.Model):
         ("transfer", "Transfer"),
     ]
 
-    company_id = models.IntegerField(db_index=True)
+    gym_id = models.IntegerField(db_index=True)
     product_id = models.IntegerField(db_index=True)
     user_id = models.IntegerField(null=True, blank=True, db_index=True)
     type = models.CharField(max_length=10, choices=TYPE_CHOICES)

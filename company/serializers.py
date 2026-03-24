@@ -6,4 +6,4 @@ class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
         fields = "__all__"
-        read_only_fields = ("next_date_payment", "last_date_payment", "created_at", "updated_at", "deleted_at")
+        read_only_fields = ("created_at", "updated_at", "deleted_at")

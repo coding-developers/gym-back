@@ -76,30 +76,39 @@ class User(models.Model):
         ("admin", "Admin"),
         ("personal", "Personal"),
     ]
+    GENDER_CHOICES = [("male", "Male"), ("female", "Female"), ("other", "Other")]
+    STATUS_PAYMENT_CHOICES = [
+        ("active", "Active"),
+        ("inactive", "Inactive"),
+        ("overdue", "Overdue"),
+    ]
 
     gym = models.ForeignKey(
         Company,
         on_delete=models.CASCADE,
         related_name="users",
     )
-    status = models.CharField(max_length=255, choices=STATUS_CHOICES, null=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, null=True)
     full_name = models.CharField(max_length=255)
-    level = models.CharField(max_length=255, choices=LEVEL_CHOICES, null=True)
-    document = models.CharField(max_length=255, null=True)
-    date_of_birth = models.DateTimeField(null=True)
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, null=True)
+    document = models.CharField(max_length=255, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
     modalities = models.ManyToManyField(Modalitie, blank=True, related_name="users")
     email = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=255, null=True)
-    gender = models.CharField(max_length=255, null=True)
-    avatar_url = models.CharField(max_length=255, null=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
+    avatar_url = models.CharField(max_length=500, null=True, blank=True)
     day_of_payment = models.IntegerField(null=True, blank=True)
+    status_payment = models.CharField(max_length=20, choices=STATUS_PAYMENT_CHOICES, null=True, blank=True)
     next_date_payment = models.DateField(null=True, blank=True)
     last_date_payment = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
+        self.updated_at = timezone.now()
         if self.day_of_payment and not self.next_date_payment:
             today = timezone.now().date()
             year = today.year
