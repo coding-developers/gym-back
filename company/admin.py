@@ -4,6 +4,6 @@ from .models import Company
 
 @admin.register(Company)
 class CompanyAdmin(admin.ModelAdmin):
-    list_display = ("name", "email", "status", "status_payment", "created_at")
-    list_filter = ("status", "status_payment")
+    list_display = ("name", "email", "status", "created_at")
+    list_filter = ("status",)
     search_fields = ("name", "email", "document")

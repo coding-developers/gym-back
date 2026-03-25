@@ -11,7 +11,7 @@ class Modality(models.Model):
     STATUS_CHOICES = [("active", "Active"), ("inactive", "Inactive")]
 
     # Cross-domain reference by ID (no FK to company.Company)
-    company_id = models.IntegerField(db_index=True)
+    gym_id = models.IntegerField(db_index=True)
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

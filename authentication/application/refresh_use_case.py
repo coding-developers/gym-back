@@ -1,6 +1,5 @@
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
-from django.contrib.auth.models import User as DjangoUser
 from gym.models import User as GymUser
 
 
@@ -11,18 +10,17 @@ class RefreshUseCase:
         except TokenError:
             raise ValueError("Refresh token inválido ou expirado.")
 
-        django_user_id = refresh.payload.get("user_id")
+        user_id = refresh.payload.get("user_id")
         try:
-            django_user = DjangoUser.objects.get(id=django_user_id)
-            gym_user = GymUser.objects.get(email=django_user.username)
-        except (DjangoUser.DoesNotExist, GymUser.DoesNotExist):
+            user = GymUser.objects.get(pk=user_id)
+        except GymUser.DoesNotExist:
             raise ValueError("Usuário não encontrado.")
 
         return {
             "access": str(refresh.access_token),
             "refresh": str(refresh),
-            "user_id": gym_user.id,
-            "username": gym_user.full_name,
-            "email": gym_user.email,
-            "level": gym_user.level,
+            "user_id": user.id,
+            "username": user.full_name,
+            "email": user.email,
+            "level": user.level,
         }

@@ -30,7 +30,7 @@ class Staff(models.Model):
 
     STATUS_CHOICES = [("active", "Active"), ("inactive", "Inactive")]
 
-    company_id = models.IntegerField(db_index=True)
+    gym_id = models.IntegerField(db_index=True)
     user_id = models.IntegerField(db_index=True)
     role = models.ForeignKey(
         Role,

@@ -1,13 +1,11 @@
 from django.db import models
 from django.utils import timezone
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 
 class Company(models.Model):
     """
-    Aggregate Root for the Academia/Empresa bounded context.
-    Represents a gym or fitness company.
+    Aggregate Root for the Academia/Gym bounded context.
+    Represents a gym or fitness academy.
     """
 
     STATUS_CHOICES = [
@@ -15,25 +13,15 @@ class Company(models.Model):
         ("inactive", "Inactive"),
         ("suspended", "Suspended"),
     ]
-    STATUS_PAYMENT_CHOICES = [
-        ("paid", "Paid"),
-        ("pending", "Pending"),
-        ("overdue", "Overdue"),
-    ]
 
     name = models.CharField(max_length=255)
-    type_document = models.CharField(max_length=50, null=True, blank=True)
     document = models.CharField(max_length=20, null=True, blank=True)
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, null=True, blank=True)
     email = models.EmailField(max_length=255)
-    foundation_date = models.DateTimeField(null=True, blank=True)
-    logo = models.CharField(max_length=255, null=True, blank=True)
+    foundation_date = models.DateField(null=True, blank=True)
+    logo = models.CharField(max_length=500, null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
-    avatar_url = models.CharField(max_length=255, null=True, blank=True)
-    day_of_payment = models.IntegerField()
-    next_date_payment = models.DateTimeField(null=True, blank=True)
-    last_date_payment = models.DateTimeField(null=True, blank=True)
-    status_payment = models.CharField(max_length=50, choices=STATUS_PAYMENT_CHOICES)
+    avatar_url = models.CharField(max_length=500, null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -47,18 +35,5 @@ class Company(models.Model):
         return self.name
 
     def save(self, *args, **kwargs):
-        if self.day_of_payment and not self.next_date_payment:
-            today = timezone.now().date()
-            year = today.year
-            month = today.month
-            if today.day > self.day_of_payment:
-                month += 1
-                if month > 12:
-                    month = 1
-                    year += 1
-            self.next_date_payment = datetime(year, month, self.day_of_payment)
-
-        if self.next_date_payment and not self.last_date_payment:
-            self.last_date_payment = self.next_date_payment - relativedelta(months=1)
-
+        self.updated_at = timezone.now()
         super().save(*args, **kwargs)

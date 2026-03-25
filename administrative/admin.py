@@ -10,6 +10,6 @@ class RoleAdmin(admin.ModelAdmin):
 
 @admin.register(Staff)
 class StaffAdmin(admin.ModelAdmin):
-    list_display = ("pk", "company_id", "user_id", "role", "status", "hired_at")
+    list_display = ("pk", "gym_id", "user_id", "role", "status", "hired_at")
     list_filter = ("status",)
-    search_fields = ("company_id", "user_id")
+    search_fields = ("gym_id", "user_id")

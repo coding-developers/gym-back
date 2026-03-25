@@ -33,7 +33,7 @@ class Product(models.Model):
         ("out_of_stock", "Out of Stock"),
     ]
 
-    company_id = models.IntegerField(db_index=True)
+    gym_id = models.IntegerField(db_index=True)
     category = models.ForeignKey(
         Category,
         null=True,

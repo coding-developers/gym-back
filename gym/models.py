@@ -1,72 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from datetime import datetime, date
-from dateutil.relativedelta import relativedelta
-
-
-class Company(models.Model):
-    name = models.CharField(max_length=255)
-    type_document = models.CharField(max_length=255, null=True)
-    document = models.CharField(max_length=255, null=True)
-    status = models.CharField(max_length=255, null=True)
-    email = models.CharField(max_length=255)
-    foundation_date = models.DateTimeField(null=True)
-    logo = models.CharField(max_length=255, null=True)
-    founder = models.ForeignKey(
-        "User",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="founded_companies",
-    )
-    phone_number = models.CharField(max_length=255, null=True)
-    avatar_url = models.CharField(max_length=255, null=True)
-    day_of_payment = models.IntegerField()
-    status_payment = models.CharField(max_length=255)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(default=timezone.now)
-    deleted_at = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return self.name
-
-    def save(self, *args, **kwargs):
-        # Se day_of_payment estiver definido, calcular next_date_payment
-        if self.day_of_payment:
-            today = timezone.now().date()
-
-            # Se já houver next_date_payment, usar como referência
-            if not self.next_date_payment:
-                # calcula o próximo dia de pagamento a partir de hoje
-                year = today.year
-                month = today.month
-                # se o dia já passou esse mês, vai para o próximo mês
-                if today.day > self.day_of_payment:
-                    month += 1
-                    if month > 12:
-                        month = 1
-                        year += 1
-                self.next_date_payment = datetime(year, month, self.day_of_payment)
-
-            self.last_date_payment = self.next_date_payment - relativedelta(months=1)
-
-        super().save(*args, **kwargs)
-
-
-class Modalitie(models.Model):
-    gym = models.ForeignKey(
-        Company,
-        on_delete=models.CASCADE,
-        related_name="modalities",
-    )
-    status = models.CharField(max_length=255)
-    name = models.CharField(max_length=255)
-    created_at = models.DateTimeField(default=timezone.now)
-    updated_at = models.DateTimeField(default=timezone.now)
-    deleted_at = models.DateTimeField(null=True, blank=True)
-
-    def __str__(self):
-        return self.name
+from datetime import date
 
 
 class User(models.Model):
@@ -76,30 +10,35 @@ class User(models.Model):
         ("admin", "Admin"),
         ("personal", "Personal"),
     ]
+    GENDER_CHOICES = [("male", "Male"), ("female", "Female"), ("other", "Other")]
+    STATUS_PAYMENT_CHOICES = [
+        ("active", "Active"),
+        ("inactive", "Inactive"),
+        ("overdue", "Overdue"),
+    ]
 
-    gym = models.ForeignKey(
-        Company,
-        on_delete=models.CASCADE,
-        related_name="users",
-    )
-    status = models.CharField(max_length=255, choices=STATUS_CHOICES, null=True)
+    # Referência por ID à company.Company (sem FK entre apps - DDD)
+    gym_id = models.IntegerField(db_index=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, null=True)
     full_name = models.CharField(max_length=255)
-    level = models.CharField(max_length=255, choices=LEVEL_CHOICES, null=True)
-    document = models.CharField(max_length=255, null=True)
-    date_of_birth = models.DateTimeField(null=True)
-    modalities = models.ManyToManyField(Modalitie, blank=True, related_name="users")
+    level = models.CharField(max_length=20, choices=LEVEL_CHOICES, null=True)
+    document = models.CharField(max_length=255, null=True, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
     email = models.CharField(max_length=255, unique=True)
     password = models.CharField(max_length=255)
-    phone_number = models.CharField(max_length=255, null=True)
-    gender = models.CharField(max_length=255, null=True)
-    avatar_url = models.CharField(max_length=255, null=True)
+    phone_number = models.CharField(max_length=20, null=True, blank=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, null=True, blank=True)
+    avatar_url = models.CharField(max_length=500, null=True, blank=True)
     day_of_payment = models.IntegerField(null=True, blank=True)
+    status_payment = models.CharField(max_length=20, choices=STATUS_PAYMENT_CHOICES, null=True, blank=True)
     next_date_payment = models.DateField(null=True, blank=True)
     last_date_payment = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
+    deleted_at = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
+        self.updated_at = timezone.now()
         if self.day_of_payment and not self.next_date_payment:
             today = timezone.now().date()
             year = today.year
@@ -112,5 +51,24 @@ class User(models.Model):
             self.next_date_payment = date(year, month, self.day_of_payment)
         super().save(*args, **kwargs)
 
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_active(self):
+        return self.status == "active"
+
     def __str__(self):
         return self.full_name
+
+
+class UserModality(models.Model):
+    """
+    Relacionamento entre User e modalities.Modality via referência por ID (sem FK entre apps).
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user_modalities")
+    modality_id = models.IntegerField(db_index=True)
+
+    class Meta:
+        unique_together = ("user", "modality_id")
