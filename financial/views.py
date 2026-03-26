@@ -44,6 +44,7 @@ class PaymentViewSet(DestroyMixin, viewsets.ModelViewSet):
             gym_id=user.gym_id,
             user_id=user.pk,
             amount=amount,
+            description="Renovação de mensalidade",
             status="paid",
             due_date=due_date,
         )
