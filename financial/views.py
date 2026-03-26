@@ -1,3 +1,4 @@
+from datetime import date
 from django.db.models import Sum, Q
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -10,6 +11,44 @@ from .serializers import PaymentSerializer, ProductTransactionSerializer
 class PaymentViewSet(DestroyMixin, viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
+
+    @action(detail=False, methods=["post"], url_path="renew")
+    def renew(self, request):
+        from gym.models import User
+
+        user_id = request.data.get("user_id")
+        amount = request.data.get("amount")
+
+        if not user_id or amount is None:
+            return Response(
+                {"detail": "user_id e amount são obrigatórios."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            user = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "Usuário não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+        today = date.today()
+        day = user.day_of_payment or today.day
+        month = today.month + 1 if today.day >= day else today.month
+        year = today.year
+        if month > 12:
+            month = 1
+            year += 1
+
+        due_date = date(year, month, day)
+
+        payment = Payment.objects.create(
+            gym_id=user.gym_id,
+            user_id=user.pk,
+            amount=amount,
+            status="pending",
+            due_date=due_date,
+        )
+
+        return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=["get"], url_path="summary")
     def summary(self, request):
