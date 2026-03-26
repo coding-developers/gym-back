@@ -44,7 +44,7 @@ class PaymentViewSet(DestroyMixin, viewsets.ModelViewSet):
             gym_id=user.gym_id,
             user_id=user.pk,
             amount=amount,
-            status="pending",
+            status="paid",
             due_date=due_date,
         )
 

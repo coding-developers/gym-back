@@ -7,7 +7,11 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = "__all__"
+        fields = (
+            "id", "gym_id", "user_id", "user", "modality_id", "amount",
+            "status", "payment_method", "due_date", "paid_at",
+            "description", "created_at", "updated_at",
+        )
         read_only_fields = ("created_at", "updated_at", "paid_at")
 
     def get_user(self, obj):
